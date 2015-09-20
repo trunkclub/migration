@@ -1,0 +1,4 @@
+extract-file-directory = "/Users/dan/etl/import-files"
+etl-database-url = "postgres://trunkclub:trunkclub@192.168.23.2/etl_dev"
+etl-database-url = "postgres://finance_svc:finance_svc@192.168.23.2/postgres"
+api-uri-prefix = "http://ring.trunkclub.dev"
