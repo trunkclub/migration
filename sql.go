@@ -8,9 +8,9 @@ import (
 )
 
 type InsertStatment struct {
-	columns []string
+	columns     []string
 	queryString string
-	db *sql.DB
+	db          *sql.DB
 }
 
 func orderRecordValues(columns []string, values map[string]interface{}) []interface{} {
@@ -22,16 +22,17 @@ func orderRecordValues(columns []string, values map[string]interface{}) []interf
 }
 
 type Id int64
-func (is InsertStatment) Execute(values map[string]interface{}) (Id, error) {
+
+func (is InsertStatment) Execute(values Record) Result {
 	vals := orderRecordValues(is.columns, values)
-	var id int;
-	err:= is.db.QueryRow(is.queryString, vals...).Scan(&id)
+	var id int
+	err := is.db.QueryRow(is.queryString, vals...).Scan(&id)
 
 	if err != nil {
-		return 0, err
+		return CreateResult(false, record, err, nil)
+	} else {
+		return CreateResult(true, record, nil, &Record{"id": id})
 	}
-
-	return Id(id), nil
 }
 
 func generateParamString(paramCount int) string {
@@ -44,6 +45,6 @@ func generateParamString(paramCount int) string {
 
 func NewInsertStatement(db *sql.DB, table string, columns []string) InsertStatment {
 	sqlString := fmt.Sprintf("INSERT INTO %v(%v) VALUES (%v) RETURNING id", table, strings.Join(columns, ","), generateParamString(len(columns)))
-	
+
 	return InsertStatment{columns: columns, queryString: sqlString, db: db}
 }
