@@ -22,7 +22,7 @@ Load occurs in 3 concurrent phases:
 
 A processor orchestrates the above ETL process given the different functional needs of each individual process.
 
-```golang
+```go
 type ProcessResults struct {
     recordsExtracted int
     recordsImported int
