@@ -23,7 +23,7 @@ Load occurs in 3 concurrent phases:
 A processor orchestrates the above ETL process given the different functional needs of each individual process.
 
 ```go
-type ProcessResults struct {
+type ProcessorResults struct {
     recordsExtracted int
     recordsImported int
     recordsCreated int
@@ -37,10 +37,10 @@ type Processor struct {
     etlDatabase *sql.DB
     targetDatabase *sql.DB
     apiClient *services.Client
-    processResults *ProcessResults
+    results *ProcessorResults
 }
 
-func (p *Processor) Run(proc Process) ProcessResults {
+func (p *Processor) Run(proc Process) ProcessorResults {
     // Stream extract file Records into channel
     extractChan, err := p.streamFile(p.extractFileReader)
 
@@ -49,7 +49,6 @@ func (p *Processor) Run(proc Process) ProcessResults {
 
     // Partition records
     toImportTransChan, toCreateTransChan, err := p.partition(preTransformedChan)
-
 
     // Transform import records
     toImportChan, err := p.importTransform(toImportTransChan)
@@ -68,7 +67,7 @@ func (p *Processor) Run(proc Process) ProcessResults {
     // Post process
     err = p.postProcess(resultsChan)
 
-    return p.processResults
+    return p.results
 }
 
 func NewProcessor(config Configuration, proc Process) Processor {
@@ -78,7 +77,7 @@ func NewProcessor(config Configuration, proc Process) Processor {
     // Init service client
     // Init process results
 
-    return Processor{...}
+    return &Processor{...}
 }
 ```
 
@@ -99,11 +98,11 @@ interface Process struct {
 }
 ```
 
-* Refer to `customer_account.go` for an implementation of this interface
+* Refer to [customer_account.go](./customer_account.go) for an implementation of this interface
 
 # Configuration
 
-Configuration is via a file format similar to YAML called TOML - [TOML Reference](https://github.com/toml-lang/toml)
+Configuration is via a file format similar to YAML called TOML - [TOML Reference](https://github.com/toml-lang/toml).  Refer to [config.toml](./config.toml)
 
 ```toml
 import-file-directory = "/Users/dan/etl/import-files"
