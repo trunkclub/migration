@@ -31,13 +31,6 @@ type ProcessResults struct {
     recordsInError int
 }
 
-type Configuration struct {
-    ImportFileDirectory string
-    ETLDatabaseURL string
-    ImportDatabaseURL string
-    APIURIPrefix string
-}
-
 type Processor struct {
     process Process
     extractFilereader *csv.Reader
@@ -55,7 +48,14 @@ func (p *Processor) Run(proc Process) ProcessResults {
     preTransformedChan, err := p.preTransform(extractChan)
 
     // Partition records
-    toImportChan, toCreateChan, err := p.partition(preTransformedChan)
+    toImportTransChan, toCreateTransChan, err := p.partition(preTransformedChan)
+
+
+    // Transform import records
+    toImportChan, err := p.importTransform(toImportTransChan)
+
+    // Transform create records
+    toCreatChan, err := p.createTransform(toCreateTransChan)
 
     resultsChan := make(chan Result)
 
@@ -79,5 +79,44 @@ func NewProcessor(config Configuration, proc Process) Processor {
     // Init process results
 
     return Processor{...}
+}
+```
+
+# Process
+
+A Process is an interface to define the logic to be performed at each step of the Processor logic.
+
+```go
+interface Process struct {
+    ExtractFileName() string
+    PreTransformFns() []func(Record) Record
+    PartitionFn() func(Record) Record
+    ImportTransformFns() []func(Record) Record
+    CreateTransformFns() []func(Record) Record
+    ImportFn() func(Record) Result
+    CreateFn() func(Record) Result
+    PostProcessFn() func(Result) 
+}
+```
+
+* Refer to `customer_account.go` for an implementation of this interface
+
+# Configuration
+
+Configuration is via a file format similar to YAML called TOML - [TOML Reference](https://github.com/toml-lang/toml)
+
+```toml
+import-file-directory = "/Users/dan/etl/import-files"
+etl-database-url = "postgres://trunkclub:trunkclub@192.168.23.2/etl_dev"
+import-database-url = "postgres://finance_svc:finance_svc@192.168.23.2/postgres"
+api-uri-prefix = "http://ring.trunkclub.dev"
+```
+
+```go
+type Configuration struct {
+    ImportFileDirectory string `toml:import-file-directory`
+    ETLDatabaseURL string `toml:etl-database-url`
+    ImportDatabaseURL string `toml:import-database-url`
+    APIURIPrefix string `toml:api-uri-prefix`
 }
 ```
