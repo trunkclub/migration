@@ -7,6 +7,7 @@ CSV files are provided from which records should be streamed.  Each process shou
 
 ## Transform
 Transformation occurs in 4 phases:
+
 1. Pre-transform - Apply transformations to all streamed records from the CSV file, e.g., Fixing created_at/updated_at fields in input records
 2. Partition - Split the incoming records by whether they should be imported into the database as existing records, or created via the API as new records.  Each process should define the function for determining how to partition.
 3. Import transform - Transform records for import, remove/remap fields to conform to the schema of the target database
@@ -14,6 +15,7 @@ Transformation occurs in 4 phases:
 
 ## Load
 Load occurs in 3 concurrent phases:
+
 1. Import records via SQL
 2. Create records via API or SDK
 3. Post-process result records, e.g. map new ids to original primary ids, log success, etc.
